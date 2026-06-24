@@ -45,4 +45,14 @@ const logout = (req, res) => {
   return success(res, { message: "Logged out successfully." });
 };
 
-module.exports = { register, login, logout };
+// GET /rest/onboardings/me
+const getMe = async (req, res, next) => {
+  try {
+    const user = await onboardingService.getMe(req.user.id);
+    return success(res, { user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, logout, getMe };

@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { getPrismaClient } = require("../config/db");
+const jwt    = require("jsonwebtoken");
+const { eq } = require("drizzle-orm");
+const { getDb } = require("../config/db");
+const { appUsers } = require("../db/schema");
 
 const ORG_DOMAIN = "@org.com";
 
@@ -17,9 +19,14 @@ const validateOrgEmail = (email) => {
 const register = async ({ name, email, password }) => {
   validateOrgEmail(email);
 
-  const prisma = getPrismaClient();
+  const db = getDb();
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const [existing] = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.email, email))
+    .limit(1);
+
   if (existing) {
     const err = new Error("An account with this email already exists.");
     err.statusCode = 409;
@@ -28,10 +35,16 @@ const register = async ({ name, email, password }) => {
 
   const hashed = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: { name, email, password: hashed, role: "EMP" },
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
-  });
+  const [user] = await db
+    .insert(appUsers)
+    .values({ name, email, password: hashed, role: "EMP" })
+    .returning({
+      id:        appUsers.id,
+      name:      appUsers.name,
+      email:     appUsers.email,
+      role:      appUsers.role,
+      createdAt: appUsers.createdAt,
+    });
 
   return user;
 };
@@ -40,9 +53,14 @@ const register = async ({ name, email, password }) => {
 const login = async ({ email, password }) => {
   validateOrgEmail(email);
 
-  const prisma = getPrismaClient();
+  const db = getDb();
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const [user] = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.email, email))
+    .limit(1);
+
   if (!user) {
     const err = new Error("Invalid email or password.");
     err.statusCode = 401;
@@ -66,4 +84,29 @@ const login = async ({ email, password }) => {
   return { user: safeUser, token };
 };
 
-module.exports = { register, login };
+// ── Get current user profile ──────────────────────────────────────────────────
+const getMe = async (userId) => {
+  const db = getDb();
+
+  const [user] = await db
+    .select({
+      id:        appUsers.id,
+      name:      appUsers.name,
+      email:     appUsers.email,
+      role:      appUsers.role,
+      createdAt: appUsers.createdAt,
+    })
+    .from(appUsers)
+    .where(eq(appUsers.id, userId))
+    .limit(1);
+
+  if (!user) {
+    const err = new Error("User not found.");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  return user;
+};
+
+module.exports = { register, login, getMe };

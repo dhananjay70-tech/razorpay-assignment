@@ -1,4 +1,6 @@
-const { getPrismaClient } = require("../config/db");
+const { eq } = require("drizzle-orm");
+const { getDb } = require("../config/db");
+const { appUsers } = require("../db/schema");
 
 const VALID_ROLES = ["EMP", "RM", "APE", "CFO"];
 
@@ -10,20 +12,30 @@ const assignRole = async ({ userId, role }) => {
     throw err;
   }
 
-  const prisma = getPrismaClient();
+  const db = getDb();
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const [user] = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.id, userId))
+    .limit(1);
+
   if (!user) {
     const err = new Error("User not found.");
     err.statusCode = 404;
     throw err;
   }
 
-  const updated = await prisma.user.update({
-    where: { id: userId },
-    data: { role },
-    select: { id: true, name: true, email: true, role: true },
-  });
+  const [updated] = await db
+    .update(appUsers)
+    .set({ role })
+    .where(eq(appUsers.id, userId))
+    .returning({
+      id:    appUsers.id,
+      name:  appUsers.name,
+      email: appUsers.email,
+      role:  appUsers.role,
+    });
 
   return updated;
 };

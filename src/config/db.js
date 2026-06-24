@@ -1,22 +1,30 @@
-const { PrismaClient } = require("@prisma/client");
-const { PrismaPg } = require("@prisma/adapter-pg");
+/**
+ * Drizzle ORM database client — replaces src/config/db.js (Prisma version).
+ * Exports: getDb(), connectDB(), disconnectDB()
+ */
+
+const { drizzle } = require("drizzle-orm/postgres-js");
+const postgresJs  = require("postgres");
+const schema      = require("../db/schema");
 require("dotenv/config");
 
-let prisma;
+let db;
+let client;
 
-const getPrismaClient = () => {
-  if (!prisma) {
-    const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-    prisma = new PrismaClient({ adapter });
+const getDb = () => {
+  if (!db) {
+    client = postgresJs(process.env.DATABASE_URL);
+    db = drizzle(client, { schema });
   }
-  return prisma;
+  return db;
 };
 
 const connectDB = async () => {
   try {
-    const client = getPrismaClient();
-    await client.$connect();
-    console.log("✅ Database connected successfully");
+    getDb();
+    // Run a lightweight query to validate the connection
+    await db.execute("SELECT 1");
+    console.log("✅ Database connected successfully (Drizzle)");
   } catch (error) {
     console.error("❌ Database connection failed:", error.message);
     process.exit(1);
@@ -24,10 +32,10 @@ const connectDB = async () => {
 };
 
 const disconnectDB = async () => {
-  if (prisma) {
-    await prisma.$disconnect();
+  if (client) {
+    await client.end();
     console.log("🔌 Database disconnected");
   }
 };
 
-module.exports = { getPrismaClient, connectDB, disconnectDB };
+module.exports = { getDb, connectDB, disconnectDB };

@@ -1,29 +1,32 @@
-const { getPrismaClient } = require("../config/db");
+const { eq, and, inArray, desc } = require("drizzle-orm");
+const { getDb } = require("../config/db");
+const { appUsers, employeeAssignments, reimbursements } = require("../db/schema");
 
 // ── Helper: format reimbursement for API response ─────────────────────────────
 const fmt = (r) => ({
-  id: r.id,
-  title: r.title,
+  id:          r.id,
+  title:       r.title,
   description: r.description,
-  amount: r.amount,
-  status: r.status,
+  amount:      r.amount,
+  status:      r.status,
 });
 
 // ── Create reimbursement (EMP only) ──────────────────────────────────────────
 const createReimbursement = async (employeeId, { title, description, amount }) => {
-  const prisma = getPrismaClient();
+  const db = getDb();
 
-  const reimbursement = await prisma.reimbursement.create({
-    data: {
+  const [reimbursement] = await db
+    .insert(reimbursements)
+    .values({
       employeeId,
       title,
       description,
-      amount: parseFloat(amount),
-      status: "PENDING",
-      rmApproved: false,
+      amount:      parseFloat(amount),
+      status:      "PENDING",
+      rmApproved:  false,
       apeApproved: false,
-    },
-  });
+    })
+    .returning();
 
   return fmt(reimbursement);
 };
@@ -31,54 +34,65 @@ const createReimbursement = async (employeeId, { title, description, amount }) =
 // ── List reimbursements (role-filtered) ──────────────────────────────────────
 /**
  * EMP  → their own (all statuses)
- * RM   → PENDING from their direct EMPs where RM hasn't acted yet (rmApproved=false, not rejected)
+ * RM   → PENDING from their direct EMPs where RM hasn't acted yet (rmApproved=false)
  * APE  → RM-approved but APE hasn't acted yet (rmApproved=true, apeApproved=false, status=PENDING)
  * CFO  → APE-approved (apeApproved=true)
  */
 const listReimbursements = async (requestingUser) => {
-  const prisma = getPrismaClient();
+  const db = getDb();
   const { id, role } = requestingUser;
 
-  let reimbursements = [];
+  let rows = [];
 
   if (role === "EMP") {
-    reimbursements = await prisma.reimbursement.findMany({
-      where: { employeeId: id },
-      orderBy: { createdAt: "desc" },
-    });
+    rows = await db
+      .select()
+      .from(reimbursements)
+      .where(eq(reimbursements.employeeId, id))
+      .orderBy(desc(reimbursements.createdAt));
   } else if (role === "RM") {
     // Get EMP IDs under this RM
-    const assignments = await prisma.employeeAssignment.findMany({
-      where: { managerId: id },
-      select: { employeeId: true },
-    });
+    const assignments = await db
+      .select({ employeeId: employeeAssignments.employeeId })
+      .from(employeeAssignments)
+      .where(eq(employeeAssignments.managerId, id));
+
     const empIds = assignments.map((a) => a.employeeId);
 
-    reimbursements = await prisma.reimbursement.findMany({
-      where: {
-        employeeId: { in: empIds },
-        status: "PENDING",
-        rmApproved: false,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    if (empIds.length === 0) return [];
+
+    rows = await db
+      .select()
+      .from(reimbursements)
+      .where(
+        and(
+          inArray(reimbursements.employeeId, empIds),
+          eq(reimbursements.status, "PENDING"),
+          eq(reimbursements.rmApproved, false)
+        )
+      )
+      .orderBy(desc(reimbursements.createdAt));
   } else if (role === "APE") {
-    reimbursements = await prisma.reimbursement.findMany({
-      where: {
-        status: "PENDING",
-        rmApproved: true,
-        apeApproved: false,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    rows = await db
+      .select()
+      .from(reimbursements)
+      .where(
+        and(
+          eq(reimbursements.status, "PENDING"),
+          eq(reimbursements.rmApproved, true),
+          eq(reimbursements.apeApproved, false)
+        )
+      )
+      .orderBy(desc(reimbursements.createdAt));
   } else if (role === "CFO") {
-    reimbursements = await prisma.reimbursement.findMany({
-      where: { apeApproved: true },
-      orderBy: { createdAt: "desc" },
-    });
+    rows = await db
+      .select()
+      .from(reimbursements)
+      .where(eq(reimbursements.apeApproved, true))
+      .orderBy(desc(reimbursements.createdAt));
   }
 
-  return reimbursements.map(fmt);
+  return rows.map(fmt);
 };
 
 // ── List reimbursements for a specific user (subordinate check) ───────────────
@@ -89,11 +103,16 @@ const listReimbursements = async (requestingUser) => {
  *   APE/CFO → any EMP
  */
 const listByUser = async (requestingUser, targetUserId) => {
-  const prisma = getPrismaClient();
+  const db = getDb();
   const { id: callerId, role } = requestingUser;
 
   // Target must exist and be an EMP
-  const target = await prisma.user.findUnique({ where: { id: targetUserId } });
+  const [target] = await db
+    .select()
+    .from(appUsers)
+    .where(eq(appUsers.id, targetUserId))
+    .limit(1);
+
   if (!target || target.role !== "EMP") {
     const err = new Error("Target user not found or is not an EMP.");
     err.statusCode = 404;
@@ -102,9 +121,17 @@ const listByUser = async (requestingUser, targetUserId) => {
 
   // RM: check subordinate relationship
   if (role === "RM") {
-    const assignment = await prisma.employeeAssignment.findFirst({
-      where: { employeeId: targetUserId, managerId: callerId },
-    });
+    const [assignment] = await db
+      .select()
+      .from(employeeAssignments)
+      .where(
+        and(
+          eq(employeeAssignments.employeeId, targetUserId),
+          eq(employeeAssignments.managerId, callerId)
+        )
+      )
+      .limit(1);
+
     if (!assignment) {
       const err = new Error("This EMP does not report to you.");
       err.statusCode = 403;
@@ -113,12 +140,13 @@ const listByUser = async (requestingUser, targetUserId) => {
   }
   // APE and CFO can view any EMP's reimbursements
 
-  const reimbursements = await prisma.reimbursement.findMany({
-    where: { employeeId: targetUserId },
-    orderBy: { createdAt: "desc" },
-  });
+  const rows = await db
+    .select()
+    .from(reimbursements)
+    .where(eq(reimbursements.employeeId, targetUserId))
+    .orderBy(desc(reimbursements.createdAt));
 
-  return reimbursements.map(fmt);
+  return rows.map(fmt);
 };
 
 // ── Update reimbursement status (RM / APE / CFO) ─────────────────────────────
@@ -133,7 +161,7 @@ const listByUser = async (requestingUser, targetUserId) => {
  *   Any REJECTED → status=REJECTED immediately
  */
 const updateStatus = async ({ reimbursementId, status }, requestingUser) => {
-  const prisma = getPrismaClient();
+  const db = getDb();
   const { id: callerId, role } = requestingUser;
 
   if (!["APPROVED", "REJECTED"].includes(status)) {
@@ -142,9 +170,11 @@ const updateStatus = async ({ reimbursementId, status }, requestingUser) => {
     throw err;
   }
 
-  const reimbursement = await prisma.reimbursement.findUnique({
-    where: { id: reimbursementId },
-  });
+  const [reimbursement] = await db
+    .select()
+    .from(reimbursements)
+    .where(eq(reimbursements.id, reimbursementId))
+    .limit(1);
 
   if (!reimbursement) {
     const err = new Error("Reimbursement not found.");
@@ -171,9 +201,17 @@ const updateStatus = async ({ reimbursementId, status }, requestingUser) => {
   } else if (status === "APPROVED") {
     if (role === "RM") {
       // RM can only approve EMPs that report to them
-      const assignment = await prisma.employeeAssignment.findFirst({
-        where: { employeeId: reimbursement.employeeId, managerId: callerId },
-      });
+      const [assignment] = await db
+        .select()
+        .from(employeeAssignments)
+        .where(
+          and(
+            eq(employeeAssignments.employeeId, reimbursement.employeeId),
+            eq(employeeAssignments.managerId, callerId)
+          )
+        )
+        .limit(1);
+
       if (!assignment) {
         const err = new Error("This EMP does not report to you.");
         err.statusCode = 403;
@@ -196,10 +234,11 @@ const updateStatus = async ({ reimbursementId, status }, requestingUser) => {
     }
   }
 
-  const updated = await prisma.reimbursement.update({
-    where: { id: reimbursementId },
-    data: updateData,
-  });
+  const [updated] = await db
+    .update(reimbursements)
+    .set(updateData)
+    .where(eq(reimbursements.id, reimbursementId))
+    .returning();
 
   return fmt(updated);
 };
