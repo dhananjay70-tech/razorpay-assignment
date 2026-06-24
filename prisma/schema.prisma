@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // NOTE: url is managed in prisma.config.ts (Prisma v7+)
+}
+
+// ── Enums ──────────────────────────────────────────────────────────────────────
+
+enum Role {
+  EMP
+  RM
+  APE
+  CFO
+}
+
+enum ReimbursementStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ── Models ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+
+  role      Role     @default(EMP)
+
+  createdAt DateTime @default(now())
+}
+
+model EmployeeAssignment {
+  id         String @id @default(uuid())
+
+  employeeId String @unique
+  managerId  String
+}
+
+model Reimbursement {
+  id          String @id @default(uuid())
+
+  title       String
+  description String
+  amount      Float
+
+  status      ReimbursementStatus @default(PENDING)
+
+  employeeId  String
+
+  rmApproved  Boolean @default(false)
+  apeApproved Boolean @default(false)
+
+  createdAt   DateTime @default(now())
+}

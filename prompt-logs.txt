@@ -1,0 +1,9 @@
+# Prompt Logs — razorpay-assignment
+# This file tracks AI prompts and decisions made during development.
+
+[2026-06-24] Project initialized with Prisma + PostgreSQL (Supabase)
+[2026-06-24] Folder structure created: src/{controllers,routes,services,middleware,config,validations,utils}
+[2026-06-24] Routes created: auth, role, employee, reimbursement
+[2026-06-24] Services created: auth (bcrypt+JWT), role (CRUD), employee (paginated CRUD), reimbursement (Razorpay lifecycle)
+[2026-06-24] Controllers, middleware (auth + role), config/db.js, app.js, server.js, utils/response.js all scaffolded
+[2026-06-24] Razorpay webhook route uses express.raw() to preserve rawBody for HMAC signature verification
