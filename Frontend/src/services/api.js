@@ -2,7 +2,7 @@ import axios from 'axios'
 
 /**
  * Axios instance configured for the backend.
- * - baseURL uses Vite proxy (/rest → http://localhost:3000/rest)
+ * - baseURL uses Vite proxy (/rest → http://localhost:7002/rest)
  * - withCredentials: true sends the httpOnly authToken cookie automatically
  */
 const api = axios.create({
