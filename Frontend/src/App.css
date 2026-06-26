@@ -1,0 +1,17 @@
+/* All custom styles and design tokens are defined in index.css */
+/* ── Progress bar — thin full-width style ───────────────────────────── */
+.progress-bar {
+  height: 3px !important;
+  background: linear-gradient(
+    90deg,
+    theme('colors.indigo.500') 0%,
+    theme('colors.purple.500') 50%,
+    theme('colors.indigo.500') 100%
+  ) !important;
+  box-shadow: 0 0 8px theme('colors.indigo.500/50') !important;
+}
+
+/* ── Native select styling ───────────────────────────────────────────── */
+select {
+  color-scheme: dark;
+}
