@@ -6,7 +6,7 @@ import axios from 'axios'
  * - withCredentials: true sends the httpOnly authToken cookie automatically
  */
 const api = axios.create({
-  baseURL: '/rest',
+  baseURL: 'https://razorpay-assignment-v52p.onrender.com/rest',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

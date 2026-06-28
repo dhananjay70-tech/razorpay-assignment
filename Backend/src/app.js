@@ -14,7 +14,7 @@ const app = express();
 // ── CORS ───────────────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGIN || "http://localhost:5173",
+    origin: process.env.ALLOWED_ORIGIN || "https://razorpay-assignment-ecru.vercel.app",
     credentials: true, // allow cookies cross-origin
   })
 );
