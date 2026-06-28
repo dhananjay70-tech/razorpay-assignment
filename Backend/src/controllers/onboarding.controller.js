@@ -26,12 +26,12 @@ const login = async (req, res, next) => {
     const { user, token } = await onboardingService.login({ email, password });
 
     // Set httpOnly auth cookie
-    res.cookie("authToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+   res.cookie("authToken", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
 
     return success(res, { user });
   } catch (err) {
