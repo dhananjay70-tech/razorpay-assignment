@@ -1,4 +1,4 @@
-# 💳 Razorpay Backend Assignment – Reimbursement Management System
+# 💳 Reimbursement Management System
 
 A scalable **Role-Based Reimbursement Management System** built using **Node.js**, **Express.js**, **PostgreSQL**, and **Drizzle ORM**. The application implements secure authentication, authorization, and a complete reimbursement approval workflow for different organizational roles.
 
