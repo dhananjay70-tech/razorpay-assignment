@@ -2,80 +2,120 @@
 
 A scalable **Role-Based Reimbursement Management System** built using **Node.js**, **Express.js**, **PostgreSQL**, and **Drizzle ORM**. The application implements secure authentication, authorization, and a complete reimbursement approval workflow for different organizational roles.
 
+> **🌐 Live Demo:** https://razorpay-assignment-ecru.vercel.app/
+
+> **📂 GitHub Repository:** https://github.com/dhananjay70-tech/razorpay-assignment
+
 ---
 
-## 📖 About the Project
+# 🚀 Live Demo
 
-This project simulates a real-world reimbursement management platform where employees can submit reimbursement requests and designated authorities can review, approve, or reject them based on their roles.
+Experience the deployed application here:
 
-The system follows **Role-Based Access Control (RBAC)** to ensure that every user has appropriate permissions throughout the reimbursement lifecycle.
+🔗 **https://razorpay-assignment-ecru.vercel.app/**
 
-New users are automatically assigned the **EMP (Employee)** role, while **CFO** users can promote employees to **Reporting Manager (RM)**, **Accounts Payable Executive (APE)**, or another **CFO**.
+---
+
+# 📖 About the Project
+
+This project simulates a real-world reimbursement management platform where employees can submit reimbursement requests and designated authorities can review, approve, or reject them based on their organizational roles.
+
+The system follows **Role-Based Access Control (RBAC)** to ensure users can only access features permitted by their assigned roles.
+
+Every newly registered account is assigned the **EMP (Employee)** role by default. A **Chief Financial Officer (CFO)** has the authority to promote employees to:
+
+* Reporting Manager (RM)
+* Accounts Payable Executive (APE)
+* Chief Financial Officer (CFO)
+
+The application is designed using industry-standard backend development practices with secure authentication, authorization, modular architecture, and scalable REST APIs.
 
 ---
 
 # ✨ Key Features
 
-### 🔐 Authentication & Security
-- Secure User Registration
-- JWT-based Authentication
-- Password Hashing using bcrypt
-- Protected API Routes
-- Secure Logout
+## 🔐 Authentication & Security
 
-### 👤 Role Based Access Control
-- Employee (EMP)
-- Reporting Manager (RM)
-- Accounts Payable Executive (APE)
-- Chief Financial Officer (CFO)
+* Secure User Registration
+* User Login & Logout
+* JWT Authentication
+* Password Hashing using bcrypt
+* Protected REST APIs
+* Secure Session Management
 
-### 💰 Reimbursement Workflow
-- Create Reimbursement Request
-- View Submitted Requests
-- Multi-level Approval Process
-- Approve / Reject Requests
-- Role-specific Access Control
+## 👤 Role-Based Access Control (RBAC)
 
-### 📊 Dashboard
-- Employee Dashboard
-- Manager Dashboard
-- CFO Dashboard
-- Role-based API Responses
+* Employee (EMP)
+* Reporting Manager (RM)
+* Accounts Payable Executive (APE)
+* Chief Financial Officer (CFO)
 
-### 🗄 Database
-- PostgreSQL
-- Drizzle ORM
-- Database Migrations
-- Relational Database Design
+## 💰 Reimbursement Management
 
-### ⚙ Backend Features
-- RESTful API Design
-- Modular MVC Architecture
-- Centralized Error Handling
-- Request Validation
-- Environment Configuration
-- Clean Project Structure
+* Create Reimbursement Requests
+* View Submitted Requests
+* Multi-Level Approval Workflow
+* Approve / Reject Requests
+* Role-Based Access Permissions
+
+## 📊 Dashboards
+
+* Employee Dashboard
+* Manager Dashboard
+* Accounts Dashboard
+* CFO Dashboard
+
+## 🗄 Database
+
+* PostgreSQL
+* Drizzle ORM
+* Database Migrations
+* Relational Database Design
+
+## ⚙ Backend Features
+
+* RESTful API Architecture
+* Modular MVC Structure
+* Middleware-based Authentication
+* Centralized Error Handling
+* Request Validation
+* Environment Configuration
+* Clean Code Structure
 
 ---
 
 # 🏗 Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| Runtime | Node.js |
-| Framework | Express.js |
-| Database | PostgreSQL |
-| ORM | Drizzle ORM |
-| Authentication | JWT |
-| Password Encryption | bcrypt |
-| Environment | dotenv |
-| Development | Nodemon |
+| Category          | Technology  |
+| ----------------- | ----------- |
+| Runtime           | Node.js     |
+| Framework         | Express.js  |
+| Database          | PostgreSQL  |
+| ORM               | Drizzle ORM |
+| Authentication    | JWT         |
+| Password Security | bcrypt      |
+| Environment       | dotenv      |
+| Development       | Nodemon     |
+
+---
+
+# 🌍 Deployment
+
+| Component | Platform   |
+| --------- | ---------- |
+| Frontend  | Vercel     |
+| Backend   | Render     |
+| Database  | PostgreSQL |
+
+**Live URL**
+
+https://razorpay-assignment-ecru.vercel.app/
 
 ---
 
 # 📁 Project Structure
 
-```
+```text
 Backend
 │
 ├── src
@@ -98,38 +138,38 @@ Backend
 
 # 🔄 Workflow
 
-```
-               Register
-                  │
-                  ▼
-             EMPLOYEE (EMP)
-                  │
-                  ▼
+```text
+                 Register
+                    │
+                    ▼
+             Employee (EMP)
+                    │
+                    ▼
       Submit Reimbursement Request
-                  │
-                  ▼
+                    │
+                    ▼
       Reporting Manager (RM)
           Approve / Reject
-                  │
-                  ▼
+                    │
+                    ▼
  Accounts Payable Executive (APE)
           Approve / Reject
-                  │
-                  ▼
-       Chief Financial Officer
-           Final Decision
+                    │
+                    ▼
+     Chief Financial Officer (CFO)
+            Final Approval
 ```
 
 ---
 
 # 👥 User Roles
 
-| Role | Permissions |
-|------|-------------|
-| EMP | Register, Login, Submit Reimbursement, View Own Requests |
-| RM | Review Employee Requests |
-| APE | Verify Approved Requests |
-| CFO | Manage Users, Promote Roles, Final Approval |
+| Role | Permissions                                              |
+| ---- | -------------------------------------------------------- |
+| EMP  | Register, Login, Submit Reimbursement, View Own Requests |
+| RM   | Review Employee Requests                                 |
+| APE  | Verify Approved Requests                                 |
+| CFO  | Manage Users, Promote Employees, Final Approval          |
 
 ---
 
@@ -155,7 +195,7 @@ npm install
 
 ---
 
-## Configure Environment
+## Configure Environment Variables
 
 Create a `.env` file.
 
@@ -185,7 +225,7 @@ npm run migrate
 npm run dev
 ```
 
-Server:
+Backend Server:
 
 ```
 http://localhost:7002
@@ -203,9 +243,9 @@ POST /rest/onboardings/register
 
 ```json
 {
-    "name":"Dhananjay Kumar",
-    "email":"dhan@gmail.com",
-    "password":"123456"
+  "name": "Dhananjay Kumar",
+  "email": "dhan@gmail.com",
+  "password": "123456"
 }
 ```
 
@@ -227,7 +267,7 @@ POST /rest/onboardings/logout
 
 ---
 
-## Current User
+## Current User Profile
 
 ```
 GET /rest/onboardings/me
@@ -237,7 +277,7 @@ GET /rest/onboardings/me
 
 # 📌 Authentication
 
-All protected endpoints require a JWT.
+All protected APIs require a valid JWT access token.
 
 ```
 Authorization: Bearer <JWT_TOKEN>
@@ -251,44 +291,43 @@ Authorization: Bearer <JWT_TOKEN>
 npm install
 ```
 
-Install dependencies.
+Install project dependencies.
 
 ```bash
 npm run dev
 ```
 
-Run development server.
+Run the development server.
 
 ```bash
 npm start
 ```
 
-Run production server.
+Run the production server.
 
 ---
 
-# 📈 Future Improvements
+# 📈 Future Enhancements
 
-- Email Notifications
-- File Upload for Bills
-- Audit Logs
-- Admin Dashboard
-- Docker Support
-- Swagger Documentation
-- Unit Testing
-- CI/CD Pipeline
-- Redis Caching
-- Rate Limiting
+* Email Notifications
+* Bill / Invoice Upload
+* Swagger API Documentation
+* Docker Support
+* Unit & Integration Testing
+* Audit Logs
+* Redis Caching
+* Rate Limiting
+* CI/CD Pipeline
 
 ---
 
 # 🧪 API Testing
 
-The APIs can be tested using:
+You can test all APIs using:
 
-- Postman
-- Thunder Client
-- Insomnia
+* Postman
+* Thunder Client
+* Insomnia
 
 ---
 
@@ -296,12 +335,20 @@ The APIs can be tested using:
 
 **Dhananjay Kumar**
 
-B.Tech CSE (AI & ML)
+B.Tech – Computer Science & Engineering (AI & ML)
 
 KR Mangalam University
 
-GitHub: https://github.com/dhananjay70-tech
+**GitHub**
+
+https://github.com/dhananjay70-tech
+
+**LinkedIn**
+
+https://linkedin.com/in/dhananjay-kumar-7a76052a7
 
 ---
 
-# ⭐ If you found this project useful, consider giving it a Star!
+# ⭐ Support
+
+If you found this project useful, consider giving it a **⭐ Star** on GitHub.
