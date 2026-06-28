@@ -1,17 +1,11 @@
-import axios from 'axios'
+import axios from "axios";
 
-/**
- * Axios instance configured for the backend.
- * - baseURL uses Vite proxy (/rest → http://localhost:7002/rest)
- * - withCredentials: true sends the httpOnly authToken cookie automatically
- */
 const api = axios.create({
-  baseURL: 'https://razorpay-assignment-v52p.onrender.com/rest',
+  baseURL: "https://razorpay-assignment-v52p.onrender.com/rest",
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
+});
+
+
 
 // ── Response interceptor ─────────────────────────────────────────────────────
 // Normalise error messages from { status:"error", message:"..." } shape
